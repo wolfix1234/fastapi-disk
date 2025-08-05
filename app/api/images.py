@@ -7,15 +7,32 @@ router = APIRouter(prefix="/images", tags=["images"])
 
 @router.get("/{storeid}")
 async def list_images(storeid: str, token: str = Depends(verify_token)):
-    """List all images in store"""
-    image_path = safe_path_join(BASE_PATH, storeid, "image")
+    """List all images in store with detailed information"""
+    store_path = safe_path_join(BASE_PATH, storeid)
+    image_path = store_path / "image"
     
-    if not image_path.exists():
+    if not store_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")
     
+    if not image_path.exists():
+        return {"images": [], "count": 0, "message": "No images directory found"}
+    
     try:
-        files = [f.name for f in image_path.iterdir() if f.is_file()]
-        image_links = [f"/image/{storeid}/{file}" for file in files]
-        return {"images": image_links}
-    except OSError:
-        raise HTTPException(status_code=500, detail="Failed to list images")
+        images = []
+        for file_path in image_path.iterdir():
+            if file_path.is_file():
+                stat = file_path.stat()
+                images.append({
+                    "filename": file_path.name,
+                    "url": f"/image/{storeid}/{file_path.name}",
+                    "size": stat.st_size,
+                    "modified": stat.st_mtime
+                })
+        
+        return {
+            "images": images,
+            "count": len(images),
+            "store_id": storeid
+        }
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")

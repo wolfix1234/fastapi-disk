@@ -10,6 +10,8 @@ def validate_filename(filename: str) -> str:
 
 def safe_path_join(*args) -> Path:
     path = Path(*args).resolve()
-    if not str(path).startswith(BASE_PATH):
+    base_path_str = str(BASE_PATH).lower()
+    path_str = str(path).lower()
+    if not path_str.startswith(base_path_str):
         raise HTTPException(status_code=400, detail="Invalid path")
     return path

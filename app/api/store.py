@@ -27,6 +27,49 @@ async def create_store(request: StoreRequest, token: str = Depends(verify_token)
             for file_path in template_path.glob("*.json"):
                 shutil.copy2(file_path, json_path)
         
-        return {"message": f"Store {request.storeid} created"}
-    except OSError:
-        raise HTTPException(status_code=500, detail="Failed to create store")
+        return {"message": f"Store {request.storeid} created successfully"}
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create store: {str(e)}")
+
+@router.get("")
+async def list_stores(token: str = Depends(verify_token)):
+    """List all available stores"""
+    try:
+        if not BASE_PATH.exists():
+            BASE_PATH.mkdir(parents=True, exist_ok=True)
+            return {"stores": [], "count": 0}
+        
+        stores = []
+        for store_path in BASE_PATH.iterdir():
+            if store_path.is_dir():
+                json_path = store_path / "json"
+                image_path = store_path / "image"
+                
+                json_count = len(list(json_path.glob("*.json"))) if json_path.exists() else 0
+                image_count = len([f for f in image_path.iterdir() if f.is_file()]) if image_path.exists() else 0
+                
+                stores.append({
+                    "store_id": store_path.name,
+                    "json_files": json_count,
+                    "images": image_count,
+                    "created": store_path.stat().st_ctime
+                })
+        
+        return {"stores": stores, "count": len(stores)}
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list stores: {str(e)}")
+
+@router.delete("/{storeid}")
+async def delete_store(storeid: str, token: str = Depends(verify_token)):
+    """Delete a store and all its contents"""
+    store_path = safe_path_join(BASE_PATH, storeid)
+    
+    if not store_path.exists():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
+    try:
+        import shutil
+        shutil.rmtree(store_path)
+        return {"message": f"Store {storeid} deleted successfully"}
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete store: {str(e)}")

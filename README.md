@@ -1,4 +1,163 @@
-# Store Management API
+# # Store Management API
+
+A comprehensive FastAPI-based REST API for managing stores, JSON files, and images with Bearer token authentication.
+
+## Features
+
+- 🏪 **Store Management**: Create, list, and delete stores
+- 📄 **JSON File Operations**: CRUD operations for JSON files with special lg/sm format support
+- 🖼️ **Image Management**: Upload, download, list, and delete images
+- 🔐 **Bearer Token Authentication**: Secure API access with JWT-style tokens
+- 📚 **Interactive Documentation**: Swagger UI with authorization support
+- 🌐 **CORS Support**: Cross-origin resource sharing enabled
+- ✅ **Input Validation**: Comprehensive request validation and error handling
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Start the Server
+
+```bash
+python start_server.py
+```
+
+The API will be available at:
+- **API Base URL**: http://localhost:8000
+- **Interactive Docs**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+
+### 3. Authentication
+
+All endpoints require Bearer token authentication. Use the following token:
+
+```
+Authorization: Bearer mamad
+```
+
+In Swagger UI:
+1. Click the "Authorize" button (🔒)
+2. Enter: `mamad`
+3. Click "Authorize"
+
+## API Endpoints
+
+### Health Check
+- `GET /` - Root endpoint with API information
+- `GET /health` - Health check endpoint
+
+### Store Management
+- `POST /store` - Create a new store
+- `GET /store` - List all stores
+- `DELETE /store/{storeid}` - Delete a store
+
+### JSON File Operations
+- `POST /json/{storeid}/{filename}` - Update JSON file
+- `PUT /json/{storeid}/{filename}` - Create new JSON file
+- `GET /json/{storeid}/{filename}` - Get JSON file content
+- `DELETE /json/{storeid}/{filename}` - Delete JSON file
+- `GET /json/{storeid}` - List all JSON files in store
+
+### Image Management
+- `POST /image/{storeid}` - Upload image
+- `GET /image/{storeid}/{filename}` - Download image
+- `DELETE /image/{storeid}/{filename}` - Delete image
+- `GET /images/{storeid}` - List all images in store
+
+## Usage Examples
+
+### Create a Store
+```bash
+curl -X POST "http://localhost:8000/store" \
+  -H "Authorization: Bearer mamad" \
+  -H "Content-Type: application/json" \
+  -d '{"storeid": "my-store"}'
+```
+
+### Upload JSON Data
+```bash
+curl -X POST "http://localhost:8000/json/my-store/home" \
+  -H "Authorization: Bearer mamad" \
+  -H "Content-Type: application/json" \
+  -d '{"data": {"title": "Welcome", "content": "Hello World"}}'
+```
+
+### Upload Image
+```bash
+curl -X POST "http://localhost:8000/image/my-store" \
+  -H "Authorization: Bearer mamad" \
+  -F "file=@image.png"
+```
+
+## Special Features
+
+### Special JSON Files
+The following filenames automatically create both `lg` and `sm` versions:
+- home, about, blog, blogdetail, collection, contact, detail, juju, store
+
+Example: Updating `home` creates both `homelg.json` and `homesm.json`
+
+### File Validation
+- **Store IDs**: Alphanumeric, hyphens, underscores only (max 50 chars)
+- **Filenames**: Alphanumeric, hyphens, underscores only (max 50 chars)
+- **Images**: JPG, JPEG, PNG, GIF, WEBP (max 10MB)
+- **JSON**: Max 1MB per file
+
+## Project Structure
+
+```
+fastapi-disk/
+├── app/
+│   ├── api/           # API route handlers
+│   ├── core/          # Configuration
+│   ├── models/        # Pydantic schemas
+│   └── utils/         # Utilities (auth, validation)
+├── data/
+│   └── stores/        # Store data directory
+├── template/          # JSON templates
+├── main.py           # FastAPI application
+├── start_server.py   # Server startup script
+└── test_api.py       # API tests
+```
+
+## Testing
+
+Run the test suite:
+```bash
+python test_api.py
+```
+
+## Configuration
+
+Edit `app/core/config.py` to customize:
+- File size limits
+- Allowed file extensions
+- Authentication token
+- CORS origins
+- Storage paths
+
+## Security
+
+- Bearer token authentication on all endpoints
+- Path traversal protection
+- File type validation
+- Size limits on uploads
+- Input sanitization
+
+## Error Handling
+
+The API returns appropriate HTTP status codes:
+- `200` - Success
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized (invalid token)
+- `404` - Not Found
+- `409` - Conflict (resource already exists)
+- `413` - Payload Too Large
+- `500` - Internal Server Error
 
 A FastAPI application for managing stores with JSON configuration files and image uploads.
 

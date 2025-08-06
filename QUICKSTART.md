@@ -34,20 +34,20 @@ python test_api.py
 curl -H "Authorization: Bearer your-secret-token-here" \
      -X POST http://localhost:8000/store \
      -H "Content-Type: application/json" \
-     -d '{"storeid": "my-store"}'
+     -d '{"storeId": "my-store"}'
 ```
 
 ## 📁 API Endpoints
 
 - **POST /store** - Create store
-- **POST /json/{storeid}/{filename}** - Update JSON
-- **GET /json/{storeid}/{filename}** - Get JSON
-- **PUT /json/{storeid}/{filename}** - Create JSON
-- **DELETE /json/{storeid}/{filename}** - Delete JSON
-- **GET /json/{storeid}** - List JSON files
-- **POST /image/{storeid}** - Upload image
-- **GET /image/{storeid}/{filename}** - Get image
-- **GET /images/{storeid}** - List images
+- **POST /json/{storeId}/{filename}** - Update JSON
+- **GET /json/{storeId}/{filename}** - Get JSON
+- **PUT /json/{storeId}/{filename}** - Create JSON
+- **DELETE /json/{storeId}/{filename}** - Delete JSON
+- **GET /json/{storeId}** - List JSON files
+- **POST /image/{storeId}** - Upload image
+- **GET /image/{storeId}/{filename}** - Get image
+- **GET /images/{storeId}** - List images
 
 ## 🐳 Docker Deployment
 

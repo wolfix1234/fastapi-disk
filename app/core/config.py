@@ -2,7 +2,7 @@ from pathlib import Path
 import os
 
 # Storage configuration
-BASE_PATH = Path("/data/stores").resolve()
+BASE_PATH = Path("./data/stores").resolve()
 TEMPLATE_PATH = Path("template").resolve()
 
 # File size limits
@@ -15,7 +15,7 @@ ALLOWED_EXTENSIONS = {".png", ".webp"}
 # Validation patterns
 FILENAME_PATTERN = r'^[a-zA-Z0-9_-]+$'
 MAX_FILENAME_LENGTH = 25
-MAX_STOREID_LENGTH = 25
+MAX_storeId_LENGTH = 25
 
 # Authentication
 BEARER_TOKEN = "mamad"

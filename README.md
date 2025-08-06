@@ -53,20 +53,20 @@ In Swagger UI:
 ### Store Management
 - `POST /store` - Create a new store
 - `GET /store` - List all stores
-- `DELETE /store/{storeid}` - Delete a store
+- `DELETE /store/{storeId}` - Delete a store
 
 ### JSON File Operations
-- `POST /json/{storeid}/{filename}` - Update JSON file
-- `PUT /json/{storeid}/{filename}` - Create new JSON file
-- `GET /json/{storeid}/{filename}` - Get JSON file content
-- `DELETE /json/{storeid}/{filename}` - Delete JSON file
-- `GET /json/{storeid}` - List all JSON files in store
+- `POST /json/{storeId}/{filename}` - Update JSON file
+- `PUT /json/{storeId}/{filename}` - Create new JSON file
+- `GET /json/{storeId}/{filename}` - Get JSON file content
+- `DELETE /json/{storeId}/{filename}` - Delete JSON file
+- `GET /json/{storeId}` - List all JSON files in store
 
 ### Image Management
-- `POST /image/{storeid}` - Upload image
-- `GET /image/{storeid}/{filename}` - Download image
-- `DELETE /image/{storeid}/{filename}` - Delete image
-- `GET /images/{storeid}` - List all images in store
+- `POST /image/{storeId}` - Upload image
+- `GET /image/{storeId}/{filename}` - Download image
+- `DELETE /image/{storeId}/{filename}` - Delete image
+- `GET /images/{storeId}` - List all images in store
 
 ## Usage Examples
 
@@ -75,7 +75,7 @@ In Swagger UI:
 curl -X POST "http://localhost:8000/store" \
   -H "Authorization: Bearer mamad" \
   -H "Content-Type: application/json" \
-  -d '{"storeid": "my-store"}'
+  -d '{"storeId": "my-store"}'
 ```
 
 ### Upload JSON Data
@@ -182,16 +182,16 @@ Authorization: Bearer your-secret-token-here
 - `POST /store` - Create store with directory structure
 
 ### JSON API
-- `POST /json/{storeid}/{filename}` - Update JSON file
-- `GET /json/{storeid}/{filename}` - Get JSON file content
-- `PUT /json/{storeid}/{filename}` - Create new JSON file
-- `DELETE /json/{storeid}/{filename}` - Delete JSON file
-- `GET /json/{storeid}` - List all JSON files
+- `POST /json/{storeId}/{filename}` - Update JSON file
+- `GET /json/{storeId}/{filename}` - Get JSON file content
+- `PUT /json/{storeId}/{filename}` - Create new JSON file
+- `DELETE /json/{storeId}/{filename}` - Delete JSON file
+- `GET /json/{storeId}` - List all JSON files
 
 ### Image API
-- `POST /image/{storeid}` - Upload image
-- `GET /image/{storeid}/{filename}` - Get image file
-- `GET /images/{storeid}` - List all image links
+- `POST /image/{storeId}` - Upload image
+- `GET /image/{storeId}/{filename}` - Get image file
+- `GET /images/{storeId}` - List all image links
 
 ## Special JSON Handling
 

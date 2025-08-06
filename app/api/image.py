@@ -8,10 +8,10 @@ from app.core.config import BASE_PATH, MAX_FILE_SIZE, ALLOWED_EXTENSIONS
 
 router = APIRouter(prefix="/image", tags=["image"])
 
-@router.post("/{storeid}")
-async def upload_image(storeid: str, file: UploadFile = File(...), token: str = Depends(verify_token)):
+@router.post("/{storeId}")
+async def upload_image(storeId: str, file: UploadFile = File(...), token: str = Depends(verify_token)):
     """Upload image to store"""
-    store_path = safe_path_join(BASE_PATH, storeid)
+    store_path = safe_path_join(BASE_PATH, storeId)
     image_path = store_path / "image"
     
     if not store_path.exists():
@@ -45,27 +45,27 @@ async def upload_image(storeid: str, file: UploadFile = File(...), token: str = 
             "message": "Image uploaded successfully", 
             "filename": unique_filename,
             "size": len(content),
-            "url": f"/image/{storeid}/{unique_filename}"
+            "url": f"/image/{storeId}/{unique_filename}"
         }
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
-@router.get("/{storeid}/{filename}")
-async def get_image(storeid: str, filename: str, token: str = Depends(verify_token)):
+@router.get("/{storeId}/{filename}")
+async def get_image(storeId: str, filename: str, token: str = Depends(verify_token)):
     """Get image file"""
     validate_filename(Path(filename).stem)
-    image_path = safe_path_join(BASE_PATH, storeid, "image", filename)
+    image_path = safe_path_join(BASE_PATH, storeId, "image", filename)
     
     if not image_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")
     
     return FileResponse(image_path)
 
-@router.delete("/{storeid}/{filename}")
-async def delete_image(storeid: str, filename: str, token: str = Depends(verify_token)):
+@router.delete("/{storeId}/{filename}")
+async def delete_image(storeId: str, filename: str, token: str = Depends(verify_token)):
     """Delete image file"""
     validate_filename(Path(filename).stem)
-    image_path = safe_path_join(BASE_PATH, storeid, "image", filename)
+    image_path = safe_path_join(BASE_PATH, storeId, "image", filename)
     
     if not image_path.exists():
         raise HTTPException(status_code=404, detail="Image not found")

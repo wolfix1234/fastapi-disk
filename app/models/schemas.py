@@ -2,16 +2,16 @@ from pydantic import BaseModel, field_validator
 from typing import Dict, Any
 import json
 import re
-from app.core.config import FILENAME_PATTERN, MAX_STOREID_LENGTH, MAX_JSON_SIZE
+from app.core.config import FILENAME_PATTERN, MAX_storeId_LENGTH, MAX_JSON_SIZE
 
 class StoreRequest(BaseModel):
-    storeid: str
+    storeId: str
     
-    @field_validator('storeid')
+    @field_validator('storeId')
     @classmethod
-    def validate_storeid(cls, v):
-        if not re.match(FILENAME_PATTERN, v) or len(v) > MAX_STOREID_LENGTH:
-            raise ValueError('Invalid storeid format')
+    def validate_storeId(cls, v):
+        if not re.match(FILENAME_PATTERN, v) or len(v) > MAX_storeId_LENGTH:
+            raise ValueError('Invalid storeId format')
         return v
 
 class JsonUpdateRequest(BaseModel):

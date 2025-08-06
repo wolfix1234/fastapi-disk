@@ -11,7 +11,7 @@ router = APIRouter(prefix="/store", tags=["store"])
 @router.post("")
 async def create_store(request: StoreRequest, token: str = Depends(verify_token)):
     """Create store directory structure and copy template files"""
-    store_path = safe_path_join(BASE_PATH, request.storeid)
+    store_path = safe_path_join(BASE_PATH, request.storeId)
     json_path = store_path / "json"
     image_path = store_path / "image"
     
@@ -27,7 +27,7 @@ async def create_store(request: StoreRequest, token: str = Depends(verify_token)
             for file_path in template_path.glob("*.json"):
                 shutil.copy2(file_path, json_path)
         
-        return {"message": f"Store {request.storeid} created successfully"}
+        return {"message": f"Store {request.storeId} created successfully"}
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to create store: {str(e)}")
 
@@ -59,10 +59,10 @@ async def list_stores(token: str = Depends(verify_token)):
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to list stores: {str(e)}")
 
-@router.delete("/{storeid}")
-async def delete_store(storeid: str, token: str = Depends(verify_token)):
+@router.delete("/{storeId}")
+async def delete_store(storeId: str, token: str = Depends(verify_token)):
     """Delete a store and all its contents"""
-    store_path = safe_path_join(BASE_PATH, storeid)
+    store_path = safe_path_join(BASE_PATH, storeId)
     
     if not store_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")
@@ -70,6 +70,6 @@ async def delete_store(storeid: str, token: str = Depends(verify_token)):
     try:
         import shutil
         shutil.rmtree(store_path)
-        return {"message": f"Store {storeid} deleted successfully"}
+        return {"message": f"Store {storeId} deleted successfully"}
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete store: {str(e)}")

@@ -5,10 +5,10 @@ from app.core.config import BASE_PATH
 
 router = APIRouter(prefix="/images", tags=["images"])
 
-@router.get("/{storeid}")
-async def list_images(storeid: str, token: str = Depends(verify_token)):
+@router.get("/{storeId}")
+async def list_images(storeId: str, token: str = Depends(verify_token)):
     """List all images in store with detailed information"""
-    store_path = safe_path_join(BASE_PATH, storeid)
+    store_path = safe_path_join(BASE_PATH, storeId)
     image_path = store_path / "image"
     
     if not store_path.exists():
@@ -24,7 +24,7 @@ async def list_images(storeid: str, token: str = Depends(verify_token)):
                 stat = file_path.stat()
                 images.append({
                     "filename": file_path.name,
-                    "url": f"/image/{storeid}/{file_path.name}",
+                    "url": f"/image/{storeId}/{file_path.name}",
                     "size": stat.st_size,
                     "modified": stat.st_mtime
                 })
@@ -32,7 +32,7 @@ async def list_images(storeid: str, token: str = Depends(verify_token)):
         return {
             "images": images,
             "count": len(images),
-            "store_id": storeid
+            "store_id": storeId
         }
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")

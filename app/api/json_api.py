@@ -3,31 +3,43 @@ import json
 from app.models.schemas import JsonUpdateRequest
 from app.utils.validators import validate_filename, safe_path_join
 from app.utils.auth import verify_token
-from app.core.config import BASE_PATH, SPECIAL_FILES
+from app.core.config import BASE_PATH
+import logging
+from fastapi import Request
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/json", tags=["json"])
 
-@router.post("/{storeid}/{filename}")
-async def update_json(storeid: str, filename: str, request: JsonUpdateRequest, token: str = Depends(verify_token)):
-    """Update JSON file content"""
+
+
+@router.post("/{storeId}/{filename}")
+async def update_json(storeId: str, filename: str, request: Request, token: str = Depends(verify_token)):
+    body = await request.json()
+    logger.info(f"request body: {body}")
     validate_filename(filename)
-    json_path = safe_path_join(BASE_PATH, storeid, "json")
-    
+    json_path = safe_path_join(BASE_PATH, storeId, "json")
+
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")
-    
+
     try:
         file_path = json_path / f"{filename}.json"
-        file_path.write_text(json.dumps(request.data, ensure_ascii=False, indent=2), encoding='utf-8')
+        file_path.write_text(json.dumps(body, ensure_ascii=False, indent=2), encoding='utf-8')
         return {"message": f"Updated {filename}.json"}
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to update file")
 
-@router.get("/{storeid}/{filename}")
-async def get_json(storeid: str, filename: str, token: str = Depends(verify_token)):
+
+@router.get("/{storeId}/{filename}")
+async def get_json(storeId: str, filename: str, token: str = Depends(verify_token)):
     """Get JSON file content"""
     validate_filename(filename)
-    file_path = safe_path_join(BASE_PATH, storeid, "json", f"{filename}.json")
+    file_path = safe_path_join(BASE_PATH, storeId, "json", f"{filename}.json")
+    
+    json_path = safe_path_join(BASE_PATH, storeId, "json")
+    
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Store not found")
     
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File not found")
@@ -37,43 +49,46 @@ async def get_json(storeid: str, filename: str, token: str = Depends(verify_toke
     except (OSError, json.JSONDecodeError):
         raise HTTPException(status_code=500, detail="Failed to read file")
 
-@router.put("/{storeid}/{filename}")
-async def create_json(storeid: str, filename: str, request: JsonUpdateRequest, token: str = Depends(verify_token)):
+@router.put("/{storeId}/{filename}")
+async def create_json(
+    storeId: str,
+    filename: str,
+    request: Request,
+    token: str = Depends(verify_token)
+):
     """Create new JSON file"""
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid JSON body")
+
     validate_filename(filename)
-    json_path = safe_path_join(BASE_PATH, storeid, "json")
-    
+    json_path = safe_path_join(BASE_PATH, storeId, "json")
+
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")
-    
+
     try:
-        if filename:
-            lg_file = json_path / f"{filename}lg.json"
-            sm_file = json_path / f"{filename}sm.json"
-            
-            if lg_file.exists() or sm_file.exists():
-                raise HTTPException(status_code=409, detail="JSON files already exist")
-            
-            content = json.dumps(request.data, ensure_ascii=False, indent=2)
-            lg_file.write_text(content, encoding='utf-8')
-            sm_file.write_text(content, encoding='utf-8')
-            return {"message": f"Created {filename}lg.json and {filename}sm.json"}
-        else:
-            file_path = json_path / f"{filename}.json"
-            if file_path.exists():
-                raise HTTPException(status_code=409, detail="File already exists")
-            
-            content = json.dumps(request.data, ensure_ascii=False, indent=2)
-            file_path.write_text(content, encoding='utf-8')
-            return {"message": f"Created {filename}.json"}
-    except OSError:
+        lg_file = json_path / f"{filename}lg.json"
+        sm_file = json_path / f"{filename}sm.json"
+
+        if lg_file.exists() or sm_file.exists():
+            raise HTTPException(status_code=409, detail="JSON files already exist")
+
+        content = json.dumps(body, ensure_ascii=False, indent=2)
+        lg_file.write_text(content, encoding='utf-8')
+        sm_file.write_text(content, encoding='utf-8')
+
+        return {"message": f"Created {filename}lg.json and {filename}sm.json"}
+    except OSError as e:
+        logger.exception("File creation failed")
         raise HTTPException(status_code=500, detail="Failed to create file")
 
-@router.delete("/{storeid}/{filename}")
-async def delete_json(storeid: str, filename: str, token: str = Depends(verify_token)):
+@router.delete("/{storeId}/{filename}")
+async def delete_json(storeId: str, filename: str, token: str = Depends(verify_token)):
     """Delete JSON file"""
     validate_filename(filename)
-    json_path = safe_path_join(BASE_PATH, storeid, "json")
+    json_path = safe_path_join(BASE_PATH, storeId, "json")
     
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")
@@ -92,10 +107,10 @@ async def delete_json(storeid: str, filename: str, token: str = Depends(verify_t
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to delete file")
 
-@router.get("/{storeid}")
-async def list_json_files(storeid: str, token: str = Depends(verify_token)):
+@router.get("/{storeId}")
+async def list_json_files(storeId: str, token: str = Depends(verify_token)):
     """List all JSON files in store"""
-    json_path = safe_path_join(BASE_PATH, storeid, "json")
+    json_path = safe_path_join(BASE_PATH, storeId, "json")
     
     if not json_path.exists():
         raise HTTPException(status_code=404, detail="Store not found")

@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import store, json_api, image, images
-from app.core.config import ALLOWED_ORIGINS
+from app.api import store, image, images, json_api
+# from app.core.config import ALLOWED_ORIGINS
 
 # Configure FastAPI with proper OpenAPI security scheme
 app = FastAPI(
@@ -53,7 +53,7 @@ app.openapi = custom_openapi
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    # allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

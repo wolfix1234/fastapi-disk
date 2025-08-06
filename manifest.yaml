@@ -44,7 +44,7 @@ spec:
     app: store-api
   ports:
     - port: 80
-      targetPort: 5002
+      targetPort: 8000
   type: ClusterIP
 ---
 # Deployment
@@ -67,7 +67,7 @@ spec:
         - name: store-api
           image: wolfix1245/test:1.0
           ports:
-            - containerPort: 5002
+            - containerPort: 8000
           env:
             - name: POD_ID
               valueFrom:
@@ -94,13 +94,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /health
-              port: 5002
+              port: 8000
             initialDelaySeconds: 30
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /health
-              port: 5002
+              port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
       volumes:

@@ -17,18 +17,9 @@ async def update_json(storeid: str, filename: str, request: JsonUpdateRequest, t
         raise HTTPException(status_code=404, detail="Store not found")
     
     try:
-        if filename in SPECIAL_FILES:
-            lg_file = json_path / f"{filename}lg.json"
-            sm_file = json_path / f"{filename}sm.json"
-            
-            content = json.dumps(request.data, ensure_ascii=False, indent=2)
-            lg_file.write_text(content, encoding='utf-8')
-            sm_file.write_text(content, encoding='utf-8')
-            return {"message": f"Updated {filename}lg.json and {filename}sm.json"}
-        else:
-            file_path = json_path / f"{filename}.json"
-            file_path.write_text(json.dumps(request.data, ensure_ascii=False, indent=2), encoding='utf-8')
-            return {"message": f"Updated {filename}.json"}
+        file_path = json_path / f"{filename}.json"
+        file_path.write_text(json.dumps(request.data, ensure_ascii=False, indent=2), encoding='utf-8')
+        return {"message": f"Updated {filename}.json"}
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to update file")
 
@@ -56,9 +47,12 @@ async def create_json(storeid: str, filename: str, request: JsonUpdateRequest, t
         raise HTTPException(status_code=404, detail="Store not found")
     
     try:
-        if filename in SPECIAL_FILES:
+        if filename:
             lg_file = json_path / f"{filename}lg.json"
             sm_file = json_path / f"{filename}sm.json"
+            
+            if lg_file.exists() or sm_file.exists():
+                raise HTTPException(status_code=409, detail="JSON files already exist")
             
             content = json.dumps(request.data, ensure_ascii=False, indent=2)
             lg_file.write_text(content, encoding='utf-8')
@@ -66,7 +60,11 @@ async def create_json(storeid: str, filename: str, request: JsonUpdateRequest, t
             return {"message": f"Created {filename}lg.json and {filename}sm.json"}
         else:
             file_path = json_path / f"{filename}.json"
-            file_path.write_text(json.dumps(request.data, ensure_ascii=False, indent=2), encoding='utf-8')
+            if file_path.exists():
+                raise HTTPException(status_code=409, detail="File already exists")
+            
+            content = json.dumps(request.data, ensure_ascii=False, indent=2)
+            file_path.write_text(content, encoding='utf-8')
             return {"message": f"Created {filename}.json"}
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to create file")
@@ -77,20 +75,20 @@ async def delete_json(storeid: str, filename: str, token: str = Depends(verify_t
     validate_filename(filename)
     json_path = safe_path_join(BASE_PATH, storeid, "json")
     
+    if not json_path.exists():
+        raise HTTPException(status_code=404, detail="Store not found")
+    
     try:
-        if filename in SPECIAL_FILES:
+        if filename:
             lg_file = json_path / f"{filename}lg.json"
             sm_file = json_path / f"{filename}sm.json"
+            
+            if not lg_file.exists() and not sm_file.exists():
+                raise HTTPException(status_code=404, detail="Files not found")
             
             lg_file.unlink(missing_ok=True)
             sm_file.unlink(missing_ok=True)
             return {"message": f"Deleted {filename}lg.json and {filename}sm.json"}
-        else:
-            file_path = json_path / f"{filename}.json"
-            if not file_path.exists():
-                raise HTTPException(status_code=404, detail="File not found")
-            file_path.unlink()
-            return {"message": f"Deleted {filename}.json"}
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to delete file")
 

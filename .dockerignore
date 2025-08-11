@@ -4,6 +4,7 @@ __pycache__
 *.pyd
 .Python
 env
+.env
 pip-log.txt
 pip-delete-this-directory.txt
 .tox
@@ -27,3 +28,4 @@ data/
 test_api.py
 README.md
 docker-compose.yml
+*.yaml

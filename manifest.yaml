@@ -15,8 +15,8 @@ metadata:
   name: store-api-config
   namespace: mamad
 data:
-  TEMPLATE_FOLDER: "/app/templates"
-  SHARE_PATH: "/data/share/"
+  TEMPLATE_FOLDER: "/app/template"
+  SHARE_PATH: "/data/stores"
   HEARTBEAT_INTERVAL: "30"
   CORS_ORIGINS: "*"
 ---
@@ -65,7 +65,7 @@ spec:
     spec:
       containers:
         - name: store-api
-          image: wolfix1245/test:1.0
+          image: wolfix1245/fastapi:1.1
           ports:
             - containerPort: 8000
           env:
@@ -83,14 +83,16 @@ spec:
                 name: store-api-config
           volumeMounts:
             - name: shared-storage
-              mountPath: /data/share
+              mountPath: /data/stores
           resources:
             requests:
               memory: "4000Mi"
               cpu: "2000m"
+              ephemeral-storage: "1Gi"
             limits:
               memory: "8000Mi"
               cpu: "4000m"
+              ephemeral-storage: "2Gi"
           livenessProbe:
             httpGet:
               path: /health
@@ -139,7 +141,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-    - host: disk-vpss-9ddcd5133c-mamad.apps.ir-central1.arvancaas.ir
+    - host: disk-9ddcd5133c-mamad.apps.ir-central1.arvancaas.ir
       http:
         paths:
           - path: /

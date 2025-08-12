@@ -23,3 +23,9 @@ class JsonUpdateRequest(BaseModel):
         if len(json.dumps(v)) > MAX_JSON_SIZE:
             raise ValueError('JSON data too large')
         return v
+
+class DirectJsonRequest(BaseModel):
+    model_config = {"extra": "allow"}
+    
+    def dict(self, **kwargs):
+        return super().dict(**kwargs)

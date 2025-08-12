@@ -50,6 +50,40 @@ async def upload_image(storeId: str, file: UploadFile = File(...), token: str = 
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to upload image: {str(e)}")
 
+# More specific route first to avoid conflicts
+@router.get("/images/{storeId}")
+async def list_images(storeId: str, token: str = Depends(verify_token)):
+    """
+    List all images in a store with detailed information.
+    """
+    store_path: Path = safe_path_join(BASE_PATH, storeId)
+
+    if not store_path.exists() or not store_path.is_dir():
+        raise HTTPException(status_code=404, detail="Store not found")
+
+    image_path = store_path / "image"
+
+    if not image_path.exists() or not image_path.is_dir():
+        return {"images": [], "count": 0, "storeId": storeId}
+
+    try:
+        images = []
+        for file_path in image_path.iterdir():
+            if file_path.is_file():
+                images.append({
+                    "_id": file_path.name,
+                    "fileName": file_path.name,
+                    "fileUrl": f"/image/{storeId}/{file_path.name}",
+                    "storeId": storeId
+                })
+
+        return {
+            "images": images
+        }
+    except OSError as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")
+
+# Generic route last to avoid matching the specific routes above
 @router.get("/{storeId}/{filename}")
 async def get_image(storeId: str, filename: str):
     """Get image file"""
@@ -60,28 +94,6 @@ async def get_image(storeId: str, filename: str):
     
     return FileResponse(image_path)
 
-@router.get("/images/{storeId}")
-async def list_images(storeId: str):
-    """List all images in store"""
-    store_path = safe_path_join(BASE_PATH, storeId)
-    image_path = store_path / "image"
-    
-    if not store_path.exists():
-        raise HTTPException(status_code=404, detail="Store not found")
-    
-    if not image_path.exists():
-        return {"images": []}
-    
-    images = []
-    for file_path in image_path.iterdir():
-        if file_path.is_file():
-            images.append({
-                "filename": file_path.name,
-                "url": f"/image/{storeId}/{file_path.name}",
-                "size": file_path.stat().st_size
-            })
-    
-    return {"images": images}
 
 @router.delete("/{storeId}/{filename}")
 async def delete_image(storeId: str, filename: str, token: str = Depends(verify_token)):
@@ -96,4 +108,3 @@ async def delete_image(storeId: str, filename: str, token: str = Depends(verify_
         return {"message": f"Image {filename} deleted successfully"}
     except OSError as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete image: {str(e)}")
-

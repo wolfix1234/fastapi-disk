@@ -2,10 +2,8 @@ from fastapi import FastAPI
 from fastapi.security import HTTPBearer
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
-from app.api import store, image, images, json_api
-# from app.core.config import ALLOWED_ORIGINS
+from app.api import store, image, json_api
 
-# Configure FastAPI with proper OpenAPI security scheme
 app = FastAPI(
     title="Store Management API",
     description="A comprehensive API for managing stores, JSON files, and images with Bearer token authentication",
@@ -13,8 +11,7 @@ app = FastAPI(
     openapi_tags=[
         {"name": "store", "description": "Store management operations"},
         {"name": "json", "description": "JSON file operations"},
-        {"name": "image", "description": "Single image operations"},
-        {"name": "images", "description": "Multiple image operations"},
+        {"name": "image", "description": "Single image operations"}
     ]
 )
 
@@ -29,7 +26,6 @@ def custom_openapi():
         routes=app.routes,
     )
     
-    # Add Bearer token security scheme
     openapi_schema["components"]["securitySchemes"] = {
         "HTTPBearer": {
             "type": "http",
@@ -39,7 +35,6 @@ def custom_openapi():
         }
     }
     
-    # Apply security to all endpoints
     for path in openapi_schema["paths"]:
         for method in openapi_schema["paths"][path]:
             if method.lower() != "options":
@@ -50,10 +45,8 @@ def custom_openapi():
 
 app.openapi = custom_openapi
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    # allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,7 +55,6 @@ app.add_middleware(
 app.include_router(store.router)
 app.include_router(json_api.router)
 app.include_router(image.router)
-app.include_router(images.router)
 
 @app.get("/", tags=["health"])
 async def root():

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 import json
-from app.models.schemas import JsonUpdateRequest
+from app.models.schemas import DirectJsonRequest
 from app.utils.validators import validate_filename, safe_path_join
 from app.utils.auth import verify_token
 from app.core.config import BASE_PATH
 import logging
-from fastapi import Request
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/json", tags=["json"])
@@ -13,8 +13,8 @@ router = APIRouter(prefix="/json", tags=["json"])
 
 
 @router.post("/{storeId}/{filename}")
-async def update_json(storeId: str, filename: str, request: Request, token: str = Depends(verify_token)):
-    body = await request.json()
+async def update_json(storeId: str, filename: str, data: DirectJsonRequest, token: str = Depends(verify_token)):
+    body = data.dict()
     logger.info(f"request body: {body}")
     validate_filename(filename)
     json_path = safe_path_join(BASE_PATH, storeId, "json")
@@ -53,14 +53,11 @@ async def get_json(storeId: str, filename: str, token: str = Depends(verify_toke
 async def create_json(
     storeId: str,
     filename: str,
-    request: Request,
+    data: DirectJsonRequest,
     token: str = Depends(verify_token)
 ):
     """Create new JSON file"""
-    try:
-        body = await request.json()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON body")
+    body = data.dict()
 
     validate_filename(filename)
     json_path = safe_path_join(BASE_PATH, storeId, "json")
@@ -94,16 +91,15 @@ async def delete_json(storeId: str, filename: str, token: str = Depends(verify_t
         raise HTTPException(status_code=404, detail="Store not found")
     
     try:
-        if filename:
-            lg_file = json_path / f"{filename}lg.json"
-            sm_file = json_path / f"{filename}sm.json"
-            
-            if not lg_file.exists() and not sm_file.exists():
-                raise HTTPException(status_code=404, detail="Files not found")
-            
-            lg_file.unlink(missing_ok=True)
-            sm_file.unlink(missing_ok=True)
-            return {"message": f"Deleted {filename}lg.json and {filename}sm.json"}
+        lg_file = json_path / f"{filename}lg.json"
+        sm_file = json_path / f"{filename}sm.json"
+        
+        if not lg_file.exists() and not sm_file.exists():
+            raise HTTPException(status_code=404, detail="Files not found")
+        
+        lg_file.unlink(missing_ok=True)
+        sm_file.unlink(missing_ok=True)
+        return {"message": f"Deleted {filename}lg.json and {filename}sm.json"}
     except OSError:
         raise HTTPException(status_code=500, detail="Failed to delete file")
 

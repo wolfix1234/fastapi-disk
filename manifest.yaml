@@ -1,0 +1,153 @@
+# Secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: store-api-secret
+  namespace: mamad
+type: Opaque
+stringData:
+  SECRET_TOKEN: "mamad"
+---
+# ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: store-api-config
+  namespace: mamad
+data:
+  TEMPLATE_FOLDER: "/app/template"
+  SHARE_PATH: "/data/stores"
+  HEARTBEAT_INTERVAL: "30"
+  CORS_ORIGINS: "*"
+---
+# Shared PVC (ReadWriteMany required)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-storage
+  namespace: mamad
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 30Gi
+---
+# ClusterIP Service (Internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-api-service
+  namespace: mamad
+spec:
+  selector:
+    app: store-api
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store-api
+  namespace: mamad
+spec:
+  replicas: 2  # Controlled by HPA
+  selector:
+    matchLabels:
+      app: store-api
+  template:
+    metadata:
+      labels:
+        app: store-api
+    spec:
+      containers:
+        - name: store-api
+          image: wolfix1245/fastapi:1.2
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POD_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: SECRET_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: store-api-secret
+                  key: SECRET_TOKEN
+          envFrom:
+            - configMapRef:
+                name: store-api-config
+          volumeMounts:
+            - name: shared-storage
+              mountPath: /data/stores
+          resources:
+            requests:
+              memory: "4000Mi"
+              cpu: "2000m"
+              ephemeral-storage: "1Gi"
+            limits:
+              memory: "8000Mi"
+              cpu: "4000m"
+              ephemeral-storage: "2Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+      volumes:
+        - name: shared-storage
+          persistentVolumeClaim:
+            claimName: shared-storage
+---
+# Horizontal Pod Autoscaler (HPA)
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: store-api-hpa
+  namespace: mamad
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: store-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: store-api-ingress
+  namespace: mamad
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: disk-9ddcd5133c-mamad.apps.ir-central1.arvancaas.ir
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: store-api-service
+                port:
+                  number: 80

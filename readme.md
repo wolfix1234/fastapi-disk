@@ -1,0 +1,1 @@
+this will work as disk like NFS on the cluster of the kubernetes for image and json
